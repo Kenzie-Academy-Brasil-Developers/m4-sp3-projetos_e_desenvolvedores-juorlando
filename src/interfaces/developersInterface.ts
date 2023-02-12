@@ -9,6 +9,18 @@ interface iDeveloper extends iDeveloperRequest {
     id: number
 }
 
-type developerResult = QueryResult<iDeveloper>
+interface iDeveloperInfosRequest {
+    developersince: string,
+    preferredos: string
+}
 
-export { iDeveloper, developerResult }
+interface iDeveloperInfos extends iDeveloperInfosRequest {
+    id: number
+}
+
+type developerResult = QueryResult<iDeveloper>
+type developerInfosResult = QueryResult<iDeveloperInfos>
+type developerCompleteInfos = iDeveloper & iDeveloperInfosRequest
+type developerComplete = QueryResult<developerCompleteInfos>
+
+export { iDeveloper, developerResult , iDeveloperInfos, developerInfosResult, developerComplete}
