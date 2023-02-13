@@ -23,4 +23,4 @@ type developerInfosResult = QueryResult<iDeveloperInfos>
 type developerCompleteInfos = iDeveloper & iDeveloperInfosRequest
 type developerComplete = QueryResult<developerCompleteInfos>
 
-export { iDeveloper, developerResult , iDeveloperInfos, developerInfosResult, developerComplete}
+export { iDeveloper, developerResult , iDeveloperInfos, developerInfosResult, developerComplete, iDeveloperRequest}

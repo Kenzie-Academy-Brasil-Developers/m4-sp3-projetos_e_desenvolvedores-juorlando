@@ -6,6 +6,7 @@ import {
   developerResult,
   iDeveloper,
   iDeveloperInfos,
+  iDeveloperRequest
 } from "../interfaces/developersInterface";
 import { client } from "../database/database";
 import { QueryConfig, QueryResult } from "pg";
@@ -146,8 +147,8 @@ const patchDeveloper = async (
   response: Response
 ): Promise<Response | void> => {
   try {
-    const developerData: iDeveloper = request.body;
-    const developerKeys: iDeveloper = request.body;
+    const developerData: iDeveloperRequest = request.body;
+    const developerKeys: iDeveloperRequest = request.body;
     const id: number = parseInt(request.params.id);
 
     const queryString: string = format(
@@ -157,10 +158,9 @@ const patchDeveloper = async (
         SET(%I) = ROW (%L)
         WHERE
             id = $1
-        RETURNING *
         `,
-      developerKeys,
-      developerData
+      Object.keys(developerKeys),
+      Object.values(developerData)
     );
 
     const queryConfig: QueryConfig = {
@@ -199,11 +199,9 @@ const patchDeveloperInfos = async (
         SET(%I) = ROW(%L)
         WHERE
             id = $1
-        RETURNING
-            *;
         `,
-    developerKeys,
-    developerData
+    Object.keys(developerKeys),
+    Object.values(developerData)
   );
 
   let queryResult: developerInfosResult = await client.query(queryString);
