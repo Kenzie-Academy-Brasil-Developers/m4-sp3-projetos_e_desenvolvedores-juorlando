@@ -3,7 +3,9 @@ import format from "pg-format";
 import {
   developerProjectResult,
   iProjectsRequest,
+  iTechnologiesRequest,
   projectsResult,
+  technologiesResult,
 } from "../interfaces/projectsInterface";
 import { client } from "../database/database";
 import { QueryConfig } from "pg";
@@ -36,14 +38,19 @@ const listProjects = async (
   response: Response
 ): Promise<Response | void> => {
   const queryString: string = `
-SELECT 
-    p.*,
-    d.id,
-    d."name",
-    d.email
-FROM 
+  SELECT 
+  p."name" projeto,
+  p.*,
+  d.*,
+  d."name" desenvolvedor,
+  pt.*,
+  t. *,
+  t."name" technologia
+  FROM 
     projects p 
-JOIN developers d ON p."developerID" = d.id
+  JOIN developers d ON p."developerID" = d.id
+  JOIN projects_technologies pt ON pt."projectsID" = p.id 
+  JOIN technologies t ON t."projectTechID" = pt.id
     `;
 
   const queryResult: developerProjectResult = await client.query(queryString);
@@ -59,13 +66,21 @@ const listProjectsById = async (
 
   const queryString: string = `
   SELECT 
-      p.*,
-      d.id,
-      d."name",
-      d.email
+  p."name" projeto,
+  p.description,
+  p."estimatedTime",
+  p.repository,
+  p."startDate",
+  d.id,
+  d."name" desenvolvedor,
+  d.email,
+  pt."addedIn",
+  t."name" technologia
   FROM 
-      projects p 
+    projects p 
   JOIN developers d ON p."developerID" = d.id
+  JOIN projects_technologies pt ON pt."projectsID" = p.id 
+  JOIN technologies t ON t."projectTechID" = pt.id
   WHERE
     p.id = $1
       `;
@@ -88,52 +103,123 @@ const updateProject = async (
   const projectData: iProjectsRequest = request.body;
   const projectKeys: iProjectsRequest = request.body;
 
-  const queryString: string = format(`
+  const queryString: string = format(
+    `
     UPDATE
         projects
     SET(%I) = ROW(%L)
     WHERE
         id = $1
   `,
-  Object.keys(projectKeys),
-  Object.values(projectData)
-  )
+    Object.keys(projectKeys),
+    Object.values(projectData)
+  );
 
   const queryConfig: QueryConfig = {
     text: queryString,
-    values: [id]
-  }
+    values: [id],
+  };
 
-  const queryResult: projectsResult = await client.query(queryConfig)
+  const queryResult: projectsResult = await client.query(queryConfig);
 
-  return response.status(200).json(queryResult.rows[0])
-  
+  return response.status(200).json(queryResult.rows[0]);
 };
 
 const deleteProject = async (
-    request: Request,
-    response: Response
-  ): Promise<Response | void> => {
-    const id: number = parseInt(request.params.id);
-  
-    const queryString: string = `
+  request: Request,
+  response: Response
+): Promise<Response | void> => {
+  const id: number = parseInt(request.params.id);
+
+  const queryString: string = `
       DELETE FROM
           projects
       WHERE
           id = $1
       `;
-  
-    const queryConfig: QueryConfig = {
-      text: queryString,
-      values: [id],
-    };
-    await client.query(queryConfig);
-    return response.status(204).send();
-  };
 
-const finishProject = async (
+  const queryConfig: QueryConfig = {
+    text: queryString,
+    values: [id],
+  };
+  await client.query(queryConfig);
+  return response.status(204).send();
+};
+
+const createTechnologies = async (
   request: Request,
   response: Response
-): Promise<Response | void> => {};
+): Promise<Response | void> => {
+  const technologieData: iTechnologiesRequest = request.body;
+  const projectsID: number = parseInt(request.params.id);
 
-export { createProject, listProjects, listProjectsById, updateProject, deleteProject };
+  let queryString: string = format(
+    `
+            INSERT INTO 
+                projects_technologies(%I)
+            VALUES
+                (%L)
+            RETURNING
+                *;
+            `,
+    Object.keys(technologieData),
+    Object.values(technologieData)
+  );
+
+  let queryResult: technologiesResult = await client.query(queryString);
+
+  queryString = `
+            UPDATE
+                technologies
+            SET
+                "projectTechID" = $1
+            WHERE
+                id = $2
+            RETURNING
+                *;
+            `;
+
+  const queryConfig: QueryConfig = {
+    text: queryString,
+    values: [queryResult.rows[0].id, projectsID],
+  };
+
+  await client.query(queryConfig);
+
+  return response.status(201).json(queryResult.rows[0]);
+};
+
+const deleteTechnologies = async (
+  request: Request,
+  response: Response
+): Promise<Response | void> => {
+  const id: number = parseInt(request.params.id);
+  const name: string = request.params.name
+
+  const queryString: string = `
+      DELETE FROM
+          technologies
+      WHERE
+          id = $1
+          name = $2
+      `;
+
+  const queryConfig: QueryConfig = {
+    text: queryString,
+    values: [id, name],
+  };
+
+  await client.query(queryConfig);
+  
+  return response.status(204).send();
+};
+
+export {
+  createProject,
+  listProjects,
+  listProjectsById,
+  updateProject,
+  deleteProject,
+  createTechnologies,
+  deleteTechnologies
+};

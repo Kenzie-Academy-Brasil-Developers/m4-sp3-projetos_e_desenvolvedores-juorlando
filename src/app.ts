@@ -7,11 +7,19 @@ import {
   getAllDevelopers,
   patchDeveloper,
   patchDeveloperInfos,
-  deleteDeveloper
+  deleteDeveloper,
 } from "./logics/developers.logics";
-import { createProject, listProjects, listProjectsById, updateProject, deleteProject } from "./logics/projects.logic"
+import {
+  createProject,
+  listProjects,
+  listProjectsById,
+  updateProject,
+  deleteProject,
+  createTechnologies,
+  deleteTechnologies,
+} from "./logics/projects.logic";
 import { ensureDeveloperExist } from "./middleware/developer.middleware";
-import { ensureProjectExist } from "./middleware/projects.middleware"
+import { ensureProjectExist } from "./middleware/projects.middleware";
 
 const app: Application = express();
 app.use(express.json());
@@ -29,6 +37,9 @@ app.get("/projects", listProjects);
 app.get("/projects/:id", ensureProjectExist, listProjectsById);
 app.patch("/projects/:id", ensureProjectExist, updateProject);
 app.delete("/projects/:id", ensureProjectExist, deleteProject);
+
+app.post("/projects/:id/technologies", ensureProjectExist, createTechnologies);
+app.delete("/projects/:id/technologies/:name", ensureProjectExist, deleteTechnologies);
 
 app.listen(3000, async () => {
   console.log("Server is Runing!");
