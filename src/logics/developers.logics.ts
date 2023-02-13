@@ -8,7 +8,7 @@ import {
   iDeveloperInfos,
   iDeveloperRequest
 } from "../interfaces/developersInterface";
-import { client } from "../database/database";
+import { client } from "../database/index";
 import { QueryConfig, QueryResult } from "pg";
 
 const createDeveloper = async (

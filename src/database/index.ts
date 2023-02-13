@@ -1,4 +1,4 @@
-// import { client } from "./config";
-// import { startDatabase } from "./connection";
+import { client } from "./config";
+import { startDatabase } from "./connection";
 
-// export { client, startDatabase };
+export { client, startDatabase };

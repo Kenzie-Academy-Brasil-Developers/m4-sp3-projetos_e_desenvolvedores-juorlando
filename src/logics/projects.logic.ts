@@ -7,7 +7,7 @@ import {
   projectsResult,
   technologiesResult,
 } from "../interfaces/projectsInterface";
-import { client } from "../database/database";
+import { client } from "../database/index";
 import { QueryConfig } from "pg";
 
 const createProject = async (
@@ -201,6 +201,7 @@ const deleteTechnologies = async (
           technologies
       WHERE
           id = $1
+      AND
           name = $2
       `;
 
@@ -210,7 +211,7 @@ const deleteTechnologies = async (
   };
 
   await client.query(queryConfig);
-  
+
   return response.status(204).send();
 };
 

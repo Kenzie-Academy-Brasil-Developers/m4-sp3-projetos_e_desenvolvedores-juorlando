@@ -1,5 +1,5 @@
 import express, { Application } from "express";
-import { startDatabase } from "./database/database";
+import { startDatabase } from "./database/index";
 import {
   createDeveloper,
   createDeveloperInfos,
