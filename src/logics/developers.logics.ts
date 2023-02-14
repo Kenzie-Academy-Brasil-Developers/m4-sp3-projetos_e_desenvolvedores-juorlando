@@ -6,7 +6,7 @@ import {
   developerResult,
   iDeveloper,
   iDeveloperInfos,
-  iDeveloperRequest
+  iDeveloperRequest,
 } from "../interfaces/developersInterface";
 import { client } from "../database/index";
 import { QueryConfig, QueryResult } from "pg";
@@ -72,7 +72,7 @@ const createDeveloperInfos = async (
         UPDATE
             developers
         SET
-            infoid = $1
+            "infoID" = $1
         WHERE
             id = $2
         RETURNING
@@ -95,15 +95,15 @@ const getAllDevelopers = async (
 ): Promise<Response | void> => {
   const queryString: string = `
   SELECT 
-    d.id, 
+    d."id", 
     d."name",
-    d.email,
-    di.developersince,
-    di.preferredos
+    d."email",
+    di."developerSince",
+    di."preferredOS"
   FROM 
     developers d 
   JOIN 
-    developer_infos di ON d.infoid = di.id
+    developer_infos di ON d."infoID" = di.id
   `;
 
   const queryResult: developerComplete = await client.query(queryString);
@@ -119,15 +119,15 @@ const getDevelopersById = async (
 
   const queryString: string = `
   SELECT 
-    d.id, 
+    d."id", 
     d."name",
-    d.email,
-    di.developersince,
-    di.preferredos
+    d."email",
+    di."developerSince",
+    di."preferredOS"
   FROM 
 	  developers d 
   JOIN 
-	  developer_infos di ON d.infoid = di.id
+	  developer_infos di ON d."infoID" = di.id
   WHERE
     d.id = $1
   `;
@@ -157,7 +157,7 @@ const patchDeveloper = async (
             developers
         SET(%I) = ROW (%L)
         WHERE
-            id = $1
+            "id" = $1
         `,
       Object.keys(developerKeys),
       Object.values(developerData)
@@ -190,7 +190,11 @@ const patchDeveloperInfos = async (
 ): Promise<Response | void> => {
   const developerData: iDeveloperInfos = request.body;
   const developerKeys: iDeveloperInfos = request.body;
-  const infoId: number = parseInt(request.params.id);
+  const id: number = parseInt(request.params.id);
+
+  console.log(id)
+  console.log(developerData)
+  console.log(developerKeys)
 
   let queryString: string = format(
     `
@@ -210,17 +214,19 @@ const patchDeveloperInfos = async (
         UPDATE
             developers
         SET
-            infoid = $1
+            "infoID" = $1
         WHERE
-            id = $2
+            "id" = $2
         RETURNING
             *;
         `;
 
   const queryConfig: QueryConfig = {
     text: queryString,
-    values: [queryResult.rows[0].id, infoId],
+    values: [queryResult.rows[0].id, id],
   };
+
+  console.log(queryResult.rows[0].id, id)
 
   await client.query(queryConfig);
 
@@ -237,7 +243,7 @@ const deleteDeveloper = async (
     DELETE FROM
         developers
     WHERE
-        id = $1
+        "id" = $1
     `;
 
   const queryConfig: QueryConfig = {
@@ -255,5 +261,5 @@ export {
   getAllDevelopers,
   patchDeveloper,
   patchDeveloperInfos,
-  deleteDeveloper
+  deleteDeveloper,
 };

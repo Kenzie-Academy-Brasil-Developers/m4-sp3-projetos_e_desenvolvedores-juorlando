@@ -10,8 +10,8 @@ interface iDeveloper extends iDeveloperRequest {
 }
 
 interface iDeveloperInfosRequest {
-    developersince: string,
-    preferredos: string
+    developerSince: string,
+    preferredOS: string
 }
 
 interface iDeveloperInfos extends iDeveloperInfosRequest {

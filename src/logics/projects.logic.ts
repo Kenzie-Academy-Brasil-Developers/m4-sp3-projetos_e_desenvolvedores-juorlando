@@ -44,7 +44,6 @@ const listProjects = async (
   d.*,
   d."name" desenvolvedor,
   pt.*,
-  t. *,
   t."name" technologia
   FROM 
     projects p 
@@ -82,7 +81,7 @@ const listProjectsById = async (
   JOIN projects_technologies pt ON pt."projectsID" = p.id 
   JOIN technologies t ON t."projectTechID" = pt.id
   WHERE
-    p.id = $1
+    "developerID" = $1
       `;
 
   const queryConfig: QueryConfig = {
@@ -109,7 +108,7 @@ const updateProject = async (
         projects
     SET(%I) = ROW(%L)
     WHERE
-        id = $1
+        "developerID" = $1
   `,
     Object.keys(projectKeys),
     Object.values(projectData)
@@ -135,7 +134,7 @@ const deleteProject = async (
       DELETE FROM
           projects
       WHERE
-          id = $1
+          "developerID" = $1
       `;
 
   const queryConfig: QueryConfig = {
@@ -200,14 +199,14 @@ const deleteTechnologies = async (
       DELETE FROM
           technologies
       WHERE
-          id = $1
+          "projectTechID" = $1
       AND
           name = $2
       `;
 
   const queryConfig: QueryConfig = {
     text: queryString,
-    values: [id, name],
+    values: [id, name.toLowerCase()],
   };
 
   await client.query(queryConfig);
