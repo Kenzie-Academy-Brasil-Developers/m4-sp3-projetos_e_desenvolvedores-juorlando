@@ -39,17 +39,9 @@ const listProjects = async (
 ): Promise<Response | void> => {
   const queryString: string = `
   SELECT 
-  p."name" projeto,
-  p.*,
-  d.*,
-  d."name" desenvolvedor,
-  pt.*,
-  t."name" technologia
+*
   FROM 
-    projects p 
-  JOIN developers d ON p."developerID" = d.id
-  JOIN projects_technologies pt ON pt."projectsID" = p.id 
-  JOIN technologies t ON t."projectTechID" = pt.id
+    projects 
     `;
 
   const queryResult: developerProjectResult = await client.query(queryString);
@@ -73,15 +65,13 @@ const listProjectsById = async (
   d.id,
   d."name" desenvolvedor,
   d.email,
-  pt."addedIn",
-  t."name" technologia
+  pt."addedIn"
   FROM 
     projects p 
-  JOIN developers d ON p."developerID" = d.id
-  JOIN projects_technologies pt ON pt."projectsID" = p.id 
-  JOIN technologies t ON t."projectTechID" = pt.id
+    JOIN developers d ON p."developerId" = d.id
+    JOIN projects_technologies pt ON pt."projectId" = p.id 
   WHERE
-    "developerID" = $1
+    "developerId" = $1
       `;
 
   const queryConfig: QueryConfig = {
@@ -108,7 +98,7 @@ const updateProject = async (
         projects
     SET(%I) = ROW(%L)
     WHERE
-        "developerID" = $1
+        "developerId" = $1
   `,
     Object.keys(projectKeys),
     Object.values(projectData)
@@ -134,7 +124,7 @@ const deleteProject = async (
       DELETE FROM
           projects
       WHERE
-          "developerID" = $1
+          "developerId" = $1
       `;
 
   const queryConfig: QueryConfig = {
@@ -170,10 +160,8 @@ const createTechnologies = async (
   queryString = `
             UPDATE
                 technologies
-            SET
-                "projectTechID" = $1
             WHERE
-                id = $2
+                id = $1
             RETURNING
                 *;
             `;
@@ -193,13 +181,13 @@ const deleteTechnologies = async (
   response: Response
 ): Promise<Response | void> => {
   const id: number = parseInt(request.params.id);
-  const name: string = request.params.name
+  const name: string = request.params.name;
 
   const queryString: string = `
       DELETE FROM
           technologies
       WHERE
-          "projectTechID" = $1
+          id = $1
       AND
           name = $2
       `;
@@ -221,5 +209,5 @@ export {
   updateProject,
   deleteProject,
   createTechnologies,
-  deleteTechnologies
+  deleteTechnologies,
 };

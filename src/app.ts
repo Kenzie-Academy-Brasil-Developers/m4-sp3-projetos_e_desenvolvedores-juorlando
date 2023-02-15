@@ -18,28 +18,28 @@ import {
   createTechnologies,
   deleteTechnologies,
 } from "./logics/projects.logic";
-import { ensureDeveloperExist } from "./middleware/developer.middleware";
-import { ensureProjectExist } from "./middleware/projects.middleware";
+import { ensureDeveloperExist, validateDataDevInfoMiddleware, validateDataMiddleware } from "./middleware/developer.middleware";
+// import { ensureProjectExist } from "./middleware/projects.middleware";
 
 const app: Application = express();
 app.use(express.json());
 
-app.post("/developers", createDeveloper);
-app.post("/developers/:id/infos", ensureDeveloperExist, createDeveloperInfos);
+app.post("/developers", validateDataMiddleware, createDeveloper);
+app.post("/developers/:id/infos", ensureDeveloperExist, validateDataDevInfoMiddleware, createDeveloperInfos);
 app.get("/developers", getAllDevelopers);
-app.get("/developers/:id/infos", ensureDeveloperExist, getDevelopersById);
-app.patch("/developers/:id", ensureDeveloperExist, patchDeveloper);
-app.patch("/developers/:id/infos", ensureDeveloperExist, patchDeveloperInfos);
+app.get("/developers/:id", ensureDeveloperExist, getDevelopersById);
+app.patch("/developers/:id", validateDataMiddleware, ensureDeveloperExist, patchDeveloper);
+app.patch("/developers/:id/infos", validateDataDevInfoMiddleware, ensureDeveloperExist, patchDeveloperInfos);
 app.delete("/developers/:id", ensureDeveloperExist, deleteDeveloper);
 
 app.post("/projects", createProject);
 app.get("/projects", listProjects);
-app.get("/projects/:id", ensureProjectExist, listProjectsById);
-app.patch("/projects/:id", ensureProjectExist, updateProject);
-app.delete("/projects/:id", ensureProjectExist, deleteProject);
+app.get("/projects/:id", ensureDeveloperExist, listProjectsById);
+app.patch("/projects/:id", ensureDeveloperExist, updateProject);
+app.delete("/projects/:id", ensureDeveloperExist, deleteProject);
 
-app.post("/projects/:id/technologies", ensureProjectExist, createTechnologies);
-app.delete("/projects/:id/technologies/:name", ensureProjectExist, deleteTechnologies);
+app.post("/projects/:id/technologies", ensureDeveloperExist, createTechnologies);
+app.delete("/projects/:id/technologies/:name", ensureDeveloperExist, deleteTechnologies);
 
 app.listen(3000, async () => {
   console.log("Server is Runing!");
