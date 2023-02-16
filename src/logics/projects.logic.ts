@@ -52,10 +52,21 @@ const listProjects = async (
   response: Response
 ): Promise<Response | void> => {
   const queryString: string = `
-  SELECT 
-*
-  FROM 
-    projects;
+  SELECT
+      p."id",
+      p."name",
+      p."description",
+      p."estimatedTime",
+      p."repository",
+      p."startDate",
+      pt."addedIn",
+      t."name" "nameTechnology"
+  FROM
+    projects p
+  LEFT JOIN projects_technologies pt
+      ON p.id = pt."projectId"
+  FULL JOIN technologies t
+      ON pt."technologyId" = t.id
     `;
 
   const queryResult: developerProjectResult = await client.query(queryString);
@@ -72,21 +83,22 @@ const listProjectsById = async (
   const queryString: string = `
 
   SELECT
-    d.name "DonodoProjeto",
-    p.name "nameProject",
+    p."developerId",
+    d."name" "DonodoProjeto",
+    p."name" "nameProject",
     p."description",
     p."estimatedTime",
     p."repository",
     p."startDate",
     pt."addedIn",
-    t.name "nameTechnology"
+    t."name" "nameTechnology"
   FROM
     developers d
-  INNER JOIN projects p
+  LEFT JOIN projects p
       ON p."developerId" = d.id
-  INNER JOIN projects_technologies pt
+  LEFT JOIN projects_technologies pt
       ON p.id = pt."projectId"
-  INNER JOIN technologies t
+  FULL JOIN technologies t
       ON pt."technologyId" = t.id
   WHERE
       p."developerId" = $1;

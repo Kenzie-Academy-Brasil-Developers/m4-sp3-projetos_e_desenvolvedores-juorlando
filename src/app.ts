@@ -39,7 +39,7 @@ app.patch("/projects/:id", validateDataMiddlewareProjects, ensureDeveloperExist,
 app.delete("/projects/:id", ensureDeveloperExist, deleteProject);
 
 app.post("/projects/:id/technologies", ensureProjectExist, validateDataMiddlewareTechnology, createTechnologies);
-app.delete("/projects/:id/technologies/:name", ensureProjectExist, validateDataMiddlewareTechnology, deleteTechnologies);
+app.delete("/projects/:id/technologies/:name", ensureProjectExist, deleteTechnologies);
 
 app.listen(3000, async () => {
   console.log("Server is Runing!");
