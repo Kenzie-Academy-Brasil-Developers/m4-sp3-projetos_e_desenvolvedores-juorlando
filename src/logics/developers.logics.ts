@@ -127,6 +127,7 @@ const getDevelopersById = async (
     d."id", 
     d."name",
     d."email",
+    d."developerInfoId" developerInfoId,
     di."developerSince",
     di."preferredOS"
   FROM 
@@ -152,7 +153,7 @@ const patchDeveloper = async (
   response: Response
 ): Promise<Response | void> => {
   try {
-    const developerData: iDeveloperRequest = request.body;
+    const developerData: iDeveloperRequest = request.validatedBody;
     const devId: number = parseInt(request.params.id);
 
     const queryString: string = format(
@@ -161,7 +162,8 @@ const patchDeveloper = async (
             developers
         SET(%I) = ROW (%L)
         WHERE
-            id = $1
+            id =$1
+        RETURNING *
         `,
       Object.keys(developerData),
       Object.values(developerData)
@@ -193,7 +195,7 @@ const patchDeveloperInfos = async (
   response: Response
 ): Promise<Response | void> => {
   try {
-    const developerData: iDeveloperInfos = request.body;
+    const developerData: iDeveloperInfos = request.validatedInfos;
     const devId: number = parseInt(request.params.id);
 
     let queryString1: string = `

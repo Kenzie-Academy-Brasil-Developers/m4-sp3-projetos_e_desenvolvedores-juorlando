@@ -18,8 +18,8 @@ import {
   createTechnologies,
   deleteTechnologies,
 } from "./logics/projects.logic";
-import { ensureDeveloperExist, validateDataDevInfoMiddleware, validateDataMiddleware } from "./middleware/developer.middleware";
-// import { ensureProjectExist } from "./middleware/projects.middleware";
+import { ensureDeveloperExist, validateDataDevInfoMiddleware, validateDataMiddleware, validateDataMiddlewareProjects, validateDataMiddlewareTechnology } from "./middleware/developer.middleware";
+import { ensureProjectExist } from "./middleware/projects.middleware";
 
 const app: Application = express();
 app.use(express.json());
@@ -32,14 +32,14 @@ app.patch("/developers/:id", validateDataMiddleware, ensureDeveloperExist, patch
 app.patch("/developers/:id/infos", validateDataDevInfoMiddleware, ensureDeveloperExist, patchDeveloperInfos);
 app.delete("/developers/:id", ensureDeveloperExist, deleteDeveloper);
 
-app.post("/projects", createProject);
+app.post("/projects", validateDataMiddlewareProjects, createProject);
 app.get("/projects", listProjects);
 app.get("/projects/:id", ensureDeveloperExist, listProjectsById);
-app.patch("/projects/:id", ensureDeveloperExist, updateProject);
+app.patch("/projects/:id", validateDataMiddlewareProjects, ensureDeveloperExist, updateProject);
 app.delete("/projects/:id", ensureDeveloperExist, deleteProject);
 
-app.post("/projects/:id/technologies", ensureDeveloperExist, createTechnologies);
-app.delete("/projects/:id/technologies/:name", ensureDeveloperExist, deleteTechnologies);
+app.post("/projects/:id/technologies", ensureProjectExist, validateDataMiddlewareTechnology, createTechnologies);
+app.delete("/projects/:id/technologies/:name", ensureProjectExist, validateDataMiddlewareTechnology, deleteTechnologies);
 
 app.listen(3000, async () => {
   console.log("Server is Runing!");

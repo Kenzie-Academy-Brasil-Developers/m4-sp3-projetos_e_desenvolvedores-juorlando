@@ -14,23 +14,37 @@ const createProject = async (
   request: Request,
   response: Response
 ): Promise<Response | void> => {
-  const projectData: iProjectsRequest = request.body;
+  try {
+    const projectData: iProjectsRequest = request.validatedProject;
 
-  const queryString = format(
-    `
-    INSERT INTO
-        projects(%I)
-    VALUES(%L)
-    RETURNING
-        *;
-    `,
-    Object.keys(projectData),
-    Object.values(projectData)
-  );
+    const queryString = format(
+      `
+      INSERT INTO
+          projects(%I)
+      VALUES(%L)
+      RETURNING
+          *;
+      `,
+      Object.keys(projectData),
+      Object.values(projectData)
+    );
 
-  const queryResult: projectsResult = await client.query(queryString);
+    const queryResult: projectsResult = await client.query(queryString);
 
-  return response.status(201).json(queryResult.rows[0]);
+    return response.status(201).json(queryResult.rows[0]);
+  } catch (error: any) {
+    if (
+      error.message.includes(
+        `insert or update on table "projects" violates foreign key constraint "projects_developerId_fkey`
+      )
+    ) {
+      return response.status(404).json({ message: "Developer not found." });
+    }
+    console.log(error);
+    return response.status(500).json({
+      message: "Internal server error",
+    });
+  }
 };
 
 const listProjects = async (
@@ -41,7 +55,7 @@ const listProjects = async (
   SELECT 
 *
   FROM 
-    projects 
+    projects;
     `;
 
   const queryResult: developerProjectResult = await client.query(queryString);
@@ -53,30 +67,34 @@ const listProjectsById = async (
   request: Request,
   response: Response
 ): Promise<Response | void> => {
-  const id: number = parseInt(request.params.id);
+  const devId: number = parseInt(request.params.id);
 
   const queryString: string = `
-  SELECT 
-  p."name" projeto,
-  p.description,
-  p."estimatedTime",
-  p.repository,
-  p."startDate",
-  d.id,
-  d."name" desenvolvedor,
-  d.email,
-  pt."addedIn"
-  FROM 
-    projects p 
-    JOIN developers d ON p."developerId" = d.id
-    JOIN projects_technologies pt ON pt."projectId" = p.id 
+
+  SELECT
+    d.name "DonodoProjeto",
+    p.name "nameProject",
+    p."description",
+    p."estimatedTime",
+    p."repository",
+    p."startDate",
+    pt."addedIn",
+    t.name "nameTechnology"
+  FROM
+    developers d
+  INNER JOIN projects p
+      ON p."developerId" = d.id
+  INNER JOIN projects_technologies pt
+      ON p.id = pt."projectId"
+  INNER JOIN technologies t
+      ON pt."technologyId" = t.id
   WHERE
-    "developerId" = $1
+      p."developerId" = $1;
       `;
 
   const queryConfig: QueryConfig = {
     text: queryString,
-    values: [id],
+    values: [devId],
   };
 
   const queryResult: developerProjectResult = await client.query(queryConfig);
@@ -89,8 +107,7 @@ const updateProject = async (
   response: Response
 ): Promise<Response | void> => {
   const id: number = parseInt(request.params.id);
-  const projectData: iProjectsRequest = request.body;
-  const projectKeys: iProjectsRequest = request.body;
+  const projectData: iProjectsRequest = request.validatedProject;
 
   const queryString: string = format(
     `
@@ -99,8 +116,9 @@ const updateProject = async (
     SET(%I) = ROW(%L)
     WHERE
         "developerId" = $1
+    RETURNING *
   `,
-    Object.keys(projectKeys),
+    Object.keys(projectData),
     Object.values(projectData)
   );
 
@@ -139,41 +157,56 @@ const createTechnologies = async (
   request: Request,
   response: Response
 ): Promise<Response | void> => {
-  const technologieData: iTechnologiesRequest = request.body;
-  const projectsID: number = parseInt(request.params.id);
+  try {
+    const technologieData: iTechnologiesRequest = request.validatedTechonology;
+    const projectsID: number = parseInt(request.params.id);
 
-  let queryString: string = format(
-    `
-            INSERT INTO 
-                projects_technologies(%I)
-            VALUES
-                (%L)
-            RETURNING
-                *;
-            `,
-    Object.keys(technologieData),
-    Object.values(technologieData)
-  );
+    let queryString: string = format(
+      `
+              INSERT INTO 
+                  technologies(%I)
+              VALUES
+                  (%L)
+              RETURNING
+                  *;
+              `,
+      Object.keys(technologieData),
+      Object.values(technologieData)
+    );
 
-  let queryResult: technologiesResult = await client.query(queryString);
+    let queryResult: technologiesResult = await client.query(queryString);
 
-  queryString = `
-            UPDATE
-                technologies
-            WHERE
-                id = $1
-            RETURNING
-                *;
-            `;
+    queryString = `
+              UPDATE
+                  projects_technologies
+              SET 
+              "technologyId" = $1
+              WHERE
+                  id = $2
+              RETURNING
+                  *;
+              `;
 
-  const queryConfig: QueryConfig = {
-    text: queryString,
-    values: [queryResult.rows[0].id, projectsID],
-  };
+    const queryConfig: QueryConfig = {
+      text: queryString,
+      values: [queryResult.rows[0].id, projectsID],
+    };
 
-  await client.query(queryConfig);
+    await client.query(queryConfig);
 
-  return response.status(201).json(queryResult.rows[0]);
+    return response.status(201).json(queryResult.rows[0]);
+  } catch (error: any) {
+    if (error.message.includes("invalid input value for enum prefos")) {
+      return response.status(400).json({
+        message:
+          "Invalid OS option. Options [JavaScript, Python, React, Express.js, HTML, CSS, Django, PostgreSQL MongoDB]",
+      });
+    }
+    console.log(error);
+    return response.status(500).json({
+      message: "Internal server error",
+    });
+  }
 };
 
 const deleteTechnologies = async (

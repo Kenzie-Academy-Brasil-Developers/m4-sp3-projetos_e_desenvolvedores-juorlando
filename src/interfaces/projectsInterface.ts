@@ -33,6 +33,8 @@ interface iTechnologiesComplete extends iTechnologies {
 type projectsResult = QueryResult<iProjects>;
 type developerProjectResult = QueryResult<iDeveloperProjects>;
 type technologiesResult = QueryResult<iTechnologiesComplete>;
+type projectRequiredKeys =   "name" | "description" | "estimatedTime" | "repository" | "startDate"
+type technologiesRequiredKeys = "name" 
 
 export {
   iProjectsRequest,
@@ -43,4 +45,7 @@ export {
   iTechnologies,
   iTechnologiesComplete,
   technologiesResult,
+  projectRequiredKeys,
+  iDeveloperProjects,
+  technologiesRequiredKeys
 };
