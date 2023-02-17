@@ -22,9 +22,16 @@ CREATE TABLE IF NOT EXISTS projects(
 "estimatedTime" varchar(20) NOT NULL,
 "repository" varchar(120) NOT NULL,
 "startDate" date NOT NULL,
-"endDate" date
+"endDate" date,
 "developerId" integer UNIQUE,
-FOREIGN KEY ("developerId") REFERENCES developers("id")
+FOREIGN KEY ("developerId") REFERENCES developers("id") ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS projects_technologies(
+"id" serial PRIMARY KEY,
+"addedIn" date NOT NULL,
+"projectId" integer UNIQUE,
+FOREIGN KEY ("projectId") REFERENCES projects("id") ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS technologies(
@@ -46,14 +53,9 @@ VALUES
 RETURNING 
 *;
 
-CREATE TABLE IF NOT EXISTS projects_technologies(
-"id" serial PRIMARY KEY,
-"addedIn" date NOT NULL,
-"projectId" integer UNIQUE,
-FOREIGN KEY ("projectId") REFERENCES projects("id")
-"technologyId" integer UNIQUE,
-FOREIGN KEY ("technologyId") REFERENCES technologies("id")
-);
+ALTER TABLE projects_technologies 
+ADD "technologyId" integer UNIQUE,
+ADD FOREIGN KEY ("technologyId") REFERENCES technologies("id");
 
 
 
